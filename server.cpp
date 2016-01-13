@@ -1,297 +1,236 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
-typedef struct database
+typedef struct node
 {
-	short int h;
-	short int Knew;
-	short int Kold;
-	short int EPC;
-	short int SQN;
+	int S;
+	int EPC;
+	int SQN;
+	int Kold;
+	int Knew;
+	node *parent;
+	node *left;
+	node *right;
 };
-short int CRC(short int *p, int len)
+void prepare(int *index,char *arr,int number)
 {
-  int crc=0,i=0;
-  while(len)
-  {
-    crc+=*(p+i);
-    crc%=137;
-    crc<<=16;
-    len--;
-    i++;
-  }
-  crc>>=8;
-  return (short int)crc;
+	while(number)
+	{
+		arr[(*index)++]=number%10;
+		number/=10;
+	}		
 }
-void Hash()
+int Findnode(int S,node **now)
 {
-	return;
+	while((*now)->S!=S)	
+	{
+		if((*now)->left!=NULL&&S<(*now)->S)
+			(*now)=(*now)->left;
+		else if((*now)->right!=NULL&&S>(*now)->S)
+			(*now)=(*now)->right;
+		else		
+			return 0;		
+	}
+	return 1;
+	
 }
-short int Inc(short int input)
+void Newnode(int S,node **now)
 {
-	++input;
-	return input;
-}
-short int Dec(short int input)
-{
-	--input;
-	return input;
-}
-int main()
-{
-	FILE *rdatabase=fopen("database.txt","r");
-	printf("A");
-
-	FILE *connect=fopen("connect.txt","r");
-	FILE *readermemory=fopen("readermemory.txt","r");
-    char mode;
-    short int h_tag;
-    int index;
-    short int r2,r1;
-    srand(time(NULL));
-
-	database data[100];
-	for(int i=0;i<100;i++)
+	int existence;
+	existence=Findnode(S,now);	
+	if(existence==0)
 	{
-		fscanf(rdatabase,"%hd%hd%hd%hd%hd",&data[i].h,&data[i].Knew,&data[i].Kold,&data[i].EPC,&data[i].SQN);
-	}
-	fclose(rdatabase);
-
-	fscanf(readermemory,"%c",&mode);
-
-	if(mode=='0')
-	{
-
-        fclose(readermemory);
-        readermemory=fopen("readermemory.txt","w");
-        r1=rand();
-        fprintf(readermemory,"1 %hd",r1);
-        fclose(readermemory);
-
-        fclose(connect);
-        connect=fopen("connect.txt","w");
-
-        fprintf(connect,"s 0 %hd",r1);
-        fclose(connect);
-	}
-	else
-	{
-        printf("3");
-        fscanf(connect,"%c",&mode);
-        if(mode!='t')
-        {
-            return 0;
-        }
-
-        fscanf(readermemory,"%hd",&r1);
-        fclose(readermemory);
-        int M2len,M1len;
-        fscanf(connect,"%hd",&h_tag);
-        int i=0;
-        for(;i<100;i++)
-        {
-            if(h_tag==data[i].h)
-            {
-                index=i;
-                break;
-            }
-        }
-        if(i==100)
-        {
-            printf("can't find the tag\n");
-            return 0;
-        }
-
-        fscanf(connect,"%d",&M1len);
-        short int M1[M1len];
-        for(int i=0;i<M1len;i++)
-            fscanf(connect,"%hd",&M1[i]);
-
-        fscanf(connect,"%d",&M2len);
-        short int M2[M2len];
-
-        for(int i=0;i<M2len;i++)
-            fscanf(connect,"%hd",&M2[i]);
-
-        short int crc_arr[4];
-
-        crc_arr[0]=data[index].EPC;
-        crc_arr[1]=data[index].SQN;
-        crc_arr[2]=CRC(crc_arr,2);
-        r2=crc_arr[0]^M1[0];
-        crc_arr[1]=r1;
-        crc_arr[2]=r2;
-        crc_arr[3]=CRC(crc_arr,3);
-        crc_arr[0]=crc_arr[0]^data[index].Knew;
-        i=0;
-
-        for(;i<M2len;i++)
-        {
-            if(crc_arr[i]!=M2[i])
-                break;
-        }
-        if(i!=M2len)
-        {
-            printf("serverèªè­‰å¤±æ•—\n");
-        }
-        else
-        {
-            data[index].SQN=Inc(data[index].SQN);
-            crc_arr[0]=data[index].EPC;
-            crc_arr[1]=r2;
-            crc_arr[2]=data[index].SQN;
-            crc_arr[3]=CRC(crc_arr,3);
-            crc_arr[0]^=data[index].Knew;
-            data[index].Kold=data[index].Knew;
-            Hash();
-            Hash();
-            system("pause");
-            FILE *connect=fopen("connect.txt","w");
-            fprintf(connect,"s %d",4);
-            for(int i=0;i<4;i++)
-            {
-                fprintf(connect," %hd",crc_arr[i]);
-            }
-            fclose(connect);
-            readermemory=fopen("readermemory.txt","w");
-            printf("3");
-            fprintf(readermemory,"0");
-            fclose(readermemory) ;
-        }
-	}
-
-
-	//
-	/*
-	int n;
-
-	printf("è³‡æ–™æ•¸é‡ï¼š") ;
-	scanf("%d",&n);
-	database data[n];
-	printf("è¼¸å…¥è³‡æ–™(h Knew Kold EPC SQN)\n");
-	for(int i=0;i<n;i++)
-	{
-		scanf("%d%d%d%hd%hd",&data[i].h,&data[i].Knew,&data[i].Kold,&data[i].EPC,&data[i].SQN);
-
-	}
-	printf("è¼¸å…¥tagçš„è³‡æ–™(h k EPC SQN)");
-	scanf("%d%d%hd%hd",&h_tag,&k_tag,&EPC_tag,&SQN_tag);
-
-
-	srand(time(NULL));
-	// reader
-	{
-		r1=rand();
-		printf("r1:%d\n",r1);
-	}
-	//tag    æ”¶åˆ° r1
-	{
-		long long int temp,p1=EPC_tag,p2=r1;
-		r2=rand();
-
-		p1=p1<<16;
-		temp=p1+SQN_tag;
-		temp=Hash(temp);
-		M1=((!temp) | r2) & (temp | (!r2));
-
-		p1=p1<<16;
-		p2=p2<<16;
-		temp=p1+p2+r2;
-		temp=Hash(temp);
-		M2=((!temp) | k_tag) & (temp | (!k_tag));
-		printf("M1:%d M2:%d r2:%d\n",M1,M2,r2);
-	}
-
-	//server   æ”¶åˆ°  h_tag M1 M2
-	{
-		//4.1
-		int i;
-		for(i=0;data[i].h!=h_tag;i++);
-		if(i==n)
+		if(S<(*now)->S)
 		{
-			printf("æ‰¾ä¸åˆ°tag\n");
+			(*now)->left=(node*)malloc(sizeof(node));
+			(*now)->left->parent=(*now);
+			(*now)=(*now)->left;
 		}
 		else
 		{
-			// 4.2
-			long long int temp,p1=data[i].EPC;
-			int temp2;
-			temp=p1<<16+data[i].SQN;
-			temp2=Hash(temp);
-			int r2_server=((!M1) | temp2) & (M1 | (!temp2));
-
-			//4.3
-			temp=(p1<<32)+(r1<<16)+r2_server;
-			temp2=Hash(temp);
-			temp2=((!temp2) | data[i].Knew ) & ( temp2 | (!data[i].Knew));
-
-			if( M2== (( (!temp2) | (int)data[i].Knew ) & ( temp2 | (!(int)data[i].Knew) ) )  )
-			{
-				printf("serverèªè­‰æˆåŠŸ\ \n");
-				//4.4
-				data[i].SQN=Inc(data[i].SQN);
-				//4.5
-				temp=p1<<32+r2_server<<16+data[i].SQN;
-				temp2=Hash(temp);
-				M3=( (!temp2)| data[i].Knew) & (temp2 | (!data[i].Knew) );
-				printf("M3:%d\n",M3);
-				//4.6
-				data[i].Kold=data[i].Knew;
-				temp=data[i].Knew<<16+r2_server;
-				data[i].Knew=Hash(temp);
-				//4.7
-				temp=p1<<16+data[i].SQN;
-				data[i].h=Hash(temp);
-
-			}
-			else
-			{
-				printf("serverèªè­‰å¤±æ•—\n");
-			}
-
+			(*now)->right=(node*)malloc(sizeof(node));
+			(*now)->right->parent=(*now);
+			(*now)=(*now)->right;
 		}
-		//tag  æ”¶åˆ° M3
-		{
-			//6.1
-			long long int temp,p1=EPC_tag;
-			int temp2;
-			SQN_tag=Inc(SQN_tag);
-			//6.2
-			temp=p1<<32+r2<<16+SQN_tag;
-			temp2=Hash(temp);
-			if(M3 ==(  ( (!temp2) | k_tag) & ( temp2 | (!k_tag ) ) )  )
-			{
-				printf("tagèªè­‰æˆåŠŸ\\n");
-				//6.3
-				temp=k_tag<<16+r2;
-				k_tag=Hash(temp);
-				//6.4
-				temp=p1<<16+SQN_tag;
-				h_tag=Hash(temp);
-			}
-			else
-			{
-				printf("tagèªè­‰å¤±æ•—\n");
-				SQN_tag=Dec(SQN_tag);
-			}
-
-
-
-
-		}
-
+			
+			
 	}
+}
+void Balance_tree(node *root)
+{
+	return;
+}
+int Hash(char arr[])
+{
+	int sum=0,i=0;
+	while(arr[i]!=-1)
+		sum=(sum<<1)+arr[i++];
+	return sum;
 
-
-
-	*/
-
+}
+int Calculate_S(int EPC,int SQN)
+{
+	char string[40];
+	int i=0;
+	prepare(&i,string,EPC);				
+	prepare(&i,string,SQN);								
+	string[i]=-1;
+	return Hash(string);
+}
+void Node_value_assign(node *now,int EPC,int SQN,int Knew,int Kold)
+{
+	int S=Calculate_S(EPC,SQN);			
+	now->SQN=SQN;
+	now->EPC=EPC;
+	now->Kold=Kold;
+	now->Knew=Knew;
+	now->S=S;
+	now->left=NULL;
+	now->right=NULL;
+}
+int main()
+{
+	int operation;
+	char string[40];
+	FILE *file;
+	node *root=(node*)malloc(sizeof(node));	
+	node *now;
+	int empty=1;
+	root->parent=NULL;
+	root->left=NULL;
+	root->right=NULL;
+	
+	srand(time(NULL));
+	do
+	{		
+		printf("¿ï¾Ü«ü¥O\n");
+		printf("1.µù¥U1­Ótag\n");
+		printf("2.ÀH¾÷²£¥Í100­Ótag\n");
+		printf("3.·j´Mtag\n");
+		printf("4.¦sÀÉ\n");
+		printf("5.ÅªÀÉ\n");
+		printf("6.­pºâS\n");
+		scanf("%d",&operation);
+		if(operation==1)
+		{			
+			int S,EPC,SQN,Kold,Knew;
+			now=root;	
+			
+			printf("¿é¤JEPC SQN Knew Klod\n");
+			scanf("%d%d%d%d",&EPC,&SQN,&Knew,&Kold);
+			S=Calculate_S(EPC,SQN);
+			
+						
+			//system("pause");
+			if(empty==0)	
+				Newnode(S,&now);
+			
+			Node_value_assign(now, EPC, SQN, Knew, Kold);
+			empty=0;
+						
+		}
+		else if(operation==2)
+		{
+			int S,EPC,SQN,Kold,Knew;
+			for(int i=0;i<100;i++)
+			{
+				now=root;
+				EPC=rand();
+				SQN=rand();
+				Kold=rand();
+				Knew=rand();
+				if(empty==0)				
+					Newnode(S,&now);												
+			
+				Node_value_assign(now, EPC, SQN, Knew, Kold);
+				empty=0;
+			}
+		}
+		else if(operation==3)
+		{
+			printf("¿é¤JtagªºS\n");
+			
+			int S;
+			scanf("%d",&S);
+			now=root;
+			if(Findnode(S,&now)==0)
+			{
+				printf("§ä¤£¨ìtag\n");
+			}
+			else
+			{
+				printf("S=%d EPC=%d SQN=%d Knew=%d Kold=%d\n",S,now->EPC,now->SQN,now->Knew,now->Kold);
+			}
+		}
+		else if(operation==4)
+		{
+			if(empty==0)
+			{
+				file=fopen("database.txt","w");
+				int i=0,max=1;
+				node *queue[1000];
+				queue[0]=root;
+				
+				while(i!=max)
+				{
+					now=queue[i];
+					//system("pause");
+					//printf("%d %d %d %d %d\n",now->S,now->EPC,now->SQN,now->Knew,now->Kold);
+					fprintf(file,"%d %d %d %d %d\n",now->S,now->EPC,now->SQN,now->Knew,now->Kold);
+					if(now->left!=NULL)
+					{
+						queue[max]=now->left;
+						max=(max+1)%1000;
+					}
+					if(now->right!=NULL)
+					{
+						queue[max]=now->right;
+						max=(max+1)%1000;
+					}
+					i=(i+1)%1000;
+				}
+				fclose(file);
+			}
+			else
+			{
+				printf("¨S¦³tag\n");
+			}
+		}
+		else if(operation==5)
+		{
+			file=fopen("database.txt","r");
+			if(file)
+			{
+				int S,EPC,SQN,Kold,Knew;
+				while(fscanf(file,"%d%d%d%d%d",&S,&EPC,&SQN,&Knew,&Kold)==5)
+				{
+					now=root;
+					if(empty==0)	
+						Newnode(S,&now);
+					Node_value_assign(now, EPC, SQN, Knew, Kold);
+					now->S=S;
+					empty=0;
+				}
+			}
+			else
+			{
+				printf("ÀÉ®×¤£¦s¦b\n");
+			}
+			
+			
+			fclose(file);
+		}
+		else if(operation==6)
+		{
+			printf("¿é¤JEPC SQN\n");
+			int S=5,EPC,SQN;
+			scanf("%d%d",&EPC,&SQN);
+			S=Calculate_S(EPC,SQN);
+			printf("S=%d\n",S);
+		}
+		
+		
+	}
+	while(operation>=1&&operation<=6);
 	return 0;
 }
-/*
-3
-1 13 13 10 56
-5 26 26 48 93
-3 56 56 13 65
-5 26 48 93
-*/
